@@ -1,6 +1,5 @@
 /*========================================INCLUDES=========================================================*/
-
-#include "SumoBotFuction.cpp"
+#include "SumoBotFunctions.h"
 /*========================================CONSTANTS AND GLOBAL VARIABLES====================================*/
 //Analog pins for bridge
 const unsigned int cui_pwmM1Driver  = 11;
@@ -26,15 +25,7 @@ const unsigned int cui_IRR          = 1;
 const unsigned int cui_IRL          = 2;
 
 //Directions
-const unsigned int  cui_FORWARD     = 1;
-const unsigned int  cui_BACKWARD    = 2;
-const unsigned int  cui_SHARP_LEFT  = 3;
-const unsigned int  cui_SHARP_RIGHT = 4;
-const unsigned int  cui_F_LEFT      = 5;
-const unsigned int  cui_F_RIGHT     = 6;
-const unsigned int  cui_B_LEFT      = 5;
-const unsigned int  cui_B_RIGHT     = 6;
-const unsigned int  cui_NEITHER     = 0;
+
 
 //Location of the enemy relative to the robot
 
@@ -53,6 +44,7 @@ void setup() {
   pinMode(cui_digM2Driver, OUTPUT);
   pinMode(cui_digM3Driver, OUTPUT);
   pinMode(cui_digM4Driver, OUTPUT);
+  
 }
 /*========================================MAIN FUNCTION============================================*/
 
@@ -80,34 +72,34 @@ void loop()
   
   //Back Left or Right Line Sensors
   else if   (LineDetection(cui_LSBR) || LineDetection(cui_LSBL) ) 
-    {
-        if (LineDetection(cui_LSBR) && LineDetection(cui_LSBL))
-            {
-              motorDrive(cui_FORWARD,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
-            }
-            
-        else if   (LineDetection(cui_LSBR))
-            {
-            motorDrive(cui_F_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);   
-            }
+  {
+      if (LineDetection(cui_LSBR) && LineDetection(cui_LSBL))
+          {
+            motorDrive(cui_FORWARD,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
+          }
           
-        else if   (LineDetection(cui_LSBL))
-            {
-            motorDrive(cui_F_RIGHT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);   
-            }
-    }
+      else if   (LineDetection(cui_LSBR))
+          {
+          motorDrive(cui_F_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);   
+          }
+        
+      else if   (LineDetection(cui_LSBL))
+          {
+          motorDrive(cui_F_RIGHT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);   
+          }
+  }
   
   //Right Side Sensors
-  else if   (LineDetection(cui_LSBR) || LineDetection(cui_LS))
-    {
-      motorDrive(cui_F_RIGHT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
-    }
+  else if   (LineDetection(cui_LSBR) || LineDetection(cui_LSFR))
+  {
+    motorDrive(cui_F_RIGHT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
+  }
   
     //Left Side Sensors
   else if   (LineDetection(cui_LSBR) || LineDetection(cui_LSFR))
-    {
-      motorDrive(cui_F_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
-    }
+  {
+    motorDrive(cui_F_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
+  }
   
   //-----------------------------------------Check if enemy robot is detected---------------------------//
   
@@ -116,9 +108,9 @@ void loop()
     motorDrive(cui_FORWARD,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
             
     if   (LineDetection(cui_LSFR) || LineDetection(cui_LSFL))
-            {
-            motorDrive(cui_SHARP_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);   
-            }
+    {
+    motorDrive(cui_SHARP_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);   
+    }
   }
   
   else if   (IsWithinDistance(cui_IRR))
@@ -133,7 +125,7 @@ void loop()
   }
   else 
   {
-    if(b_Clockwise)
+    if(b_isClockwise)
       motorDrive(cui_SHARP_RIGHT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);
     else
       motorDrive(cui_SHARP_LEFT,cui_pwmM1Driver, cui_pwmM2Driver, cui_pwmM3Driver, cui_pwmM4Driver);

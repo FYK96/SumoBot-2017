@@ -1,20 +1,6 @@
+#include "SumoBotFunctions.h"
+#include "Arduino.h"
 /*========================================CYTRON MDD10A H BRIDGE============================================*/
-/*__________________________________________________________________________________________________________*/
-
-/*========================================CONSTANTS AND GLOBAL VARIABLES====================================*/
-const unsigned int  cui_FORWARD     = 1;
-const unsigned int  cui_BACKWARD    = 2;
-const unsigned int  cui_SHARP_LEFT  = 3;
-const unsigned int  cui_SHARP_RIGHT = 4;
-const unsigned int  cui_F_LEFT      = 5;
-const unsigned int  cui_F_RIGHT     = 6;
-const unsigned int  cui_B_LEFT      = 5;
-const unsigned int  cui_B_RIGHT     = 6;
-const unsigned int  cui_NEITHER     = 0;
-
-const unsigned int  cui_pwmSTOP     = 127;
-const unsigned int  cui_pwmFRONT    = 255;
-const unsigned int  cui_pwmBACK     = 0;
 /*========================================FUNCTION DEFINITIONS==============================================*/
 
 /*************************************************************************************************************
@@ -35,9 +21,6 @@ bool motorDrive(
           unsigned int ui_BRMotor,
           unsigned int ui_BLMotor)
 {
-  const unsigned int  cui_FORWARD     = 1, cui_BACKWARD = 2;
-  const unsigned int  cui_F_LEFT        = 11, cui_F_RIGHT = 12, cui_NEITHER = 0;
-
   switch(ui_direction)
   {
     case cui_FORWARD:
@@ -109,10 +92,6 @@ bool motorDrive(
  *  The maximum distance the ir's have to detect will be at 0.5 Volts as well (ie: about 140cm). This is due
  *  to the physical properties of the sensor.
  It is reccommended to look at the GP2Y0A02 datasheet for further consultation on why this value was taken.*/
-//========================================CONSTANTS AND GLOBAL VARIABLES====================================
-
-#define DISTANCE_BOUNDARIES 102
-unsigned int uiSensorReadPin = 0;
 //========================================FUNCTION DEFINITIONS==============================================
 
 
@@ -186,10 +165,6 @@ bool IsWithinDistance(
 
 /*========================================LINE SENSOR==========================================================*/
 /*_____________________________________________________________________________________________________________*/
-//========================================CONSTANTS AND GLOBAL VARIABLES====================================
-unsigned int g_uiPaintValue        =   1000;//3mm
-unsigned int g_uiWhiteBorder       =   HIGH;
-#define LINE_SENSOR_WAIT 10
 
 //========================================FUNCTION DEFINITIONS==============================================
 
