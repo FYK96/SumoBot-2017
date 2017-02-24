@@ -1,5 +1,6 @@
 /*========================================INCLUDES=========================================================*/
 #include "SumoBotFunctions.h"
+
 /*========================================CONSTANTS AND GLOBAL VARIABLES====================================*/
 //Analog pins for bridge
 const unsigned int cui_pwmM1Driver  = 11;
@@ -14,10 +15,9 @@ const unsigned int cui_digM3Driver  = 8;
 const unsigned int cui_digM4Driver  = 7;
 
 //Line sensor Pins
-const unsigned int cui_LSFR          = 5;
-const unsigned int cui_LSFL          = 4;
-const unsigned int cui_LSBR          = 3;
-const unsigned int cui_LSBL          = 2;
+const unsigned int cui_LSFR         = 5;
+const unsigned int cui_LSBR         = 3;
+const unsigned int cui_LSBL         = 2;
 
 //IR sensor pins
 const unsigned int cui_IRF          = 0;
