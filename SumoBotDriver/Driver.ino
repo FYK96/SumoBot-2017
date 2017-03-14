@@ -1,6 +1,160 @@
-#include "SumoBotFunctions.h"
-#include "Arduino.h"
+
+/*========================================CONSTANTS AND DEFINITIONS=============================================*/
+//Direction of robot movement
+const unsigned int  cui_FORWARD     = 1;
+const unsigned int  cui_BACKWARD    = 2;
+const unsigned int  cui_SHARP_LEFT  = 3;
+const unsigned int  cui_SHARP_RIGHT = 4;
+const unsigned int  cui_F_LEFT      = 5;
+const unsigned int  cui_F_RIGHT     = 6;
+const unsigned int  cui_B_LEFT      = 7;
+const unsigned int  cui_B_RIGHT     = 8;
+const unsigned int  cui_NEITHER     = 0;
+
+
+//Direction of wheel movement
+const unsigned int  cui_pwmSTOP     = 127;
+const unsigned int  cui_pwmFRONT    = 255;
+const unsigned int  cui_pwmBACK     = 0;
+
+
+/*---------------- Pins ----------------------*/
+//Analog pins for bridge
+const unsigned int cui_pwmLeftMotors = 6;
+const unsigned int cui_pwmRightMotors = 9; 
+const unsigned int cui_digRightMotors = 13;
+const unsigned int cui_digLeftMotors = 12;
+
+
+//Line sensor Pins
+const unsigned int cui_LSFR = 5;
+const unsigned int cui_LSFL = 4;
+const unsigned int cui_LSBR = 3;
+const unsigned int cui_LSBL = 2;
+
+
+//IR sensor pins
+const unsigned int cui_IRF = 0;
+const unsigned int cui_IRR = 1;
+const unsigned int cui_IRL = 2;
+
+#define DISTANCE_BOUNDARIES 82
+
+
+//Location of the enemy relative to the robot
+
+bool b_isClockwise = false;
+
+unsigned int g_uiPaintValue        =   1000;
+unsigned int g_uiWhiteBorder       =   HIGH;
+#define LINE_SENSOR_WAIT 10
+
+/*==================================SETUP AND INITIALIZATION=========================================*/
+void setup() {
+  pinMode(cui_pwmLeftMotors, OUTPUT);
+  pinMode(cui_pwmRightMotors, OUTPUT);
+  pinMode(cui_digRightMotors,OUTPUT);
+  pinMode(cui_digLeftMotors, OUTPUT);
+  Serial.begin(9600);
+
+}
+
+/*=======================================MAIN FUNCTION===============================================*/
+void loop() 
+{
+  digitalWrite(cui_digRightMotors, HIGH);
+  digitalWrite(cui_digLeftMotors, HIGH);
+  
+  if(IsWithinDistance(cui_IRF)){
+    Serial.println("Attack");
+  }
+  else{
+    Serial.println("No Robot detected");
+  }
+  
+  /* -----------------------Check if robot is crossing the line---------------------------------*/
+
+  /*Front Left or Right Line Sensors*/
+  if(LineDetection(cui_LSFR) || LineDetection(cui_LSFL) )
+  {
+      if(LineDetection(cui_LSFR) && LineDetection(cui_LSFL))
+          {
+            motorDrive(cui_BACKWARD,cui_pwmRightMotors, cui_pwmLeftMotors);
+          }
+      else if(LineDetection(cui_LSFR))
+          {
+            motorDrive(cui_B_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);
+          }
+      else if(LineDetection(cui_LSFL))
+          {
+            motorDrive(cui_B_RIGHT,cui_pwmRightMotors, cui_pwmLeftMotors);
+          }
+  }
+  
+  //Back Left or Right Line Sensors
+  else if   (LineDetection(cui_LSBR) || LineDetection(cui_LSBL) ) 
+  {
+      if (LineDetection(cui_LSBR) && LineDetection(cui_LSBL))
+          {
+            motorDrive(cui_FORWARD,cui_pwmRightMotors, cui_pwmLeftMotors);
+          }
+          
+      else if   (LineDetection(cui_LSBR))
+          {
+          motorDrive(cui_F_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);   
+          }
+        
+      else if   (LineDetection(cui_LSBL))
+          {
+          motorDrive(cui_F_RIGHT,cui_pwmRightMotors, cui_pwmLeftMotors);   
+          }
+  }
+  
+  //Right Side Sensors
+  else if   (LineDetection(cui_LSBR) || LineDetection(cui_LSFR))
+  {
+    motorDrive(cui_F_RIGHT,cui_pwmRightMotors, cui_pwmLeftMotors);
+  }
+  
+    //Left Side Sensors
+  else if   (LineDetection(cui_LSBR) || LineDetection(cui_LSFR))
+  {
+    motorDrive(cui_F_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);
+  }
+  
+  //-----------------------------------------Check if enemy robot is detected---------------------------//
+  
+  else if   (IsWithinDistance(cui_IRF))
+  {
+    motorDrive(cui_FORWARD,cui_pwmRightMotors, cui_pwmLeftMotors);
+            
+    if   (LineDetection(cui_LSFR) || LineDetection(cui_LSFL))
+    {
+    motorDrive(cui_SHARP_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);   
+    }
+  }
+  
+  else if   (IsWithinDistance(cui_IRR))
+  {
+    b_isClockwise = true;
+    motorDrive(cui_F_RIGHT,cui_pwmRightMotors, cui_pwmLeftMotors);
+  }
+  else if   (IsWithinDistance(cui_IRL))
+  {
+    b_isClockwise = false; 
+    motorDrive(cui_F_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);
+  }
+  else 
+  {
+    if(b_isClockwise)
+      motorDrive(cui_SHARP_RIGHT,cui_pwmRightMotors, cui_pwmLeftMotors);
+    else
+      motorDrive(cui_SHARP_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);
+  }
+}
+
 /*========================================CYTRON MDD10A H BRIDGE============================================*/
+
 /*========================================FUNCTION DEFINITIONS==============================================*/
 
 /*************************************************************************************************************
@@ -16,67 +170,49 @@ Comments: -
 *************************************************************************************************************/
 bool motorDrive(
           unsigned int ui_direction,
-          unsigned int ui_FRMotor,
-          unsigned int ui_FLMotor,
-          unsigned int ui_BRMotor,
-          unsigned int ui_BLMotor)
+          unsigned int ui_RightMotors,
+          unsigned int ui_LeftMotors)
 {
   switch(ui_direction)
   {
     case cui_FORWARD:
-      analogWrite(ui_FRMotor, cui_pwmFRONT);
-      analogWrite(ui_FLMotor, cui_pwmFRONT);
-      analogWrite(ui_BRMotor, cui_pwmFRONT);
-      analogWrite(ui_BLMotor, cui_pwmFRONT);
+      analogWrite(ui_RightMotors, cui_pwmFRONT);
+      analogWrite(ui_LeftMotors, cui_pwmFRONT);
       break;
 
     case cui_BACKWARD:
-      analogWrite(ui_FRMotor, cui_pwmBACK);
-      analogWrite(ui_FLMotor, cui_pwmBACK);
-      analogWrite(ui_BRMotor, cui_pwmBACK);
-      analogWrite(ui_BLMotor, cui_pwmBACK);
+      analogWrite(ui_RightMotors, cui_pwmBACK);
+      analogWrite(ui_LeftMotors, cui_pwmBACK);
       break;
 
     case cui_SHARP_RIGHT:
-      analogWrite(ui_FRMotor, cui_pwmBACK);
-      analogWrite(ui_FLMotor, cui_pwmFRONT);
-      analogWrite(ui_BRMotor, cui_pwmBACK);
-      analogWrite(ui_BLMotor, cui_pwmFRONT);
+      analogWrite(ui_RightMotors, cui_pwmBACK);
+      analogWrite(ui_LeftMotors, cui_pwmFRONT);
       break;
 
     case cui_SHARP_LEFT:
-      analogWrite(ui_FRMotor, cui_pwmFRONT);
-      analogWrite(ui_FLMotor, cui_pwmBACK);
-      analogWrite(ui_BRMotor, cui_pwmFRONT);
-      analogWrite(ui_BLMotor, cui_pwmBACK);
+      analogWrite(ui_RightMotors, cui_pwmFRONT);
+      analogWrite(ui_LeftMotors, cui_pwmBACK);
       break;
 
     case cui_F_RIGHT:
-      analogWrite(ui_FRMotor, cui_pwmSTOP);
-      analogWrite(ui_FLMotor, cui_pwmFRONT);
-      analogWrite(ui_BRMotor, cui_pwmSTOP);
-      analogWrite(ui_BLMotor, cui_pwmFRONT);
+      analogWrite(ui_RightMotors, cui_pwmSTOP);
+      analogWrite(ui_LeftMotors, cui_pwmFRONT);
       break;
 
     case cui_F_LEFT:
-      analogWrite(ui_FRMotor, cui_pwmFRONT);
-      analogWrite(ui_FLMotor, cui_pwmSTOP);
-      analogWrite(ui_BRMotor, cui_pwmFRONT);
-      analogWrite(ui_BLMotor, cui_pwmSTOP);
+      analogWrite(ui_RightMotors, cui_pwmFRONT);
+      analogWrite(ui_LeftMotors, cui_pwmSTOP);
       break;
 
     case cui_B_RIGHT:
-      analogWrite(ui_FRMotor, cui_pwmSTOP);
-      analogWrite(ui_FLMotor, cui_pwmBACK);
-      analogWrite(ui_BRMotor, cui_pwmSTOP);
-      analogWrite(ui_BLMotor, cui_pwmBACK);
+      analogWrite(ui_RightMotors, cui_pwmSTOP);
+      analogWrite(ui_LeftMotors, cui_pwmBACK);
       break;
 
     case cui_B_LEFT:
-      analogWrite(ui_FRMotor, cui_pwmBACK);
-      analogWrite(ui_FLMotor, cui_pwmSTOP);
-      analogWrite(ui_BRMotor, cui_pwmBACK);
-      analogWrite(ui_BLMotor, cui_pwmSTOP);
+      analogWrite(ui_RightMotors, cui_pwmBACK);
+      analogWrite(ui_LeftMotors, cui_pwmSTOP);
       break;
 
     default:
@@ -160,13 +296,10 @@ bool IsWithinDistance(
     }
 }
 
-
-
-
 /*========================================LINE SENSOR==========================================================*/
 /*_____________________________________________________________________________________________________________*/
 
-//========================================FUNCTION DEFINITIONS==============================================
+/*========================================FUNCTION DEFINITIONS==============================================*/
 
 
 /*************************************************************************************************************
@@ -216,3 +349,4 @@ bool LineDetection (unsigned int uiLineSensorIO)
     return false;
   }
 }
+
