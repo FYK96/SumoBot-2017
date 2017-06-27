@@ -1,3 +1,4 @@
+ 
 
 /*========================================CONSTANTS AND DEFINITIONS=============================================*/
 //Direction of robot movement
@@ -14,28 +15,27 @@ const unsigned int  cui_NEITHER     = 0;
 
 //Direction of wheel movement
 const unsigned int  cui_pwmSTOP     = 127;
-const unsigned int  cui_pwmFRONT    = 255;
-const unsigned int  cui_pwmBACK     = 0;
+const unsigned int  cui_pwmFRONT    = 220; /* The motors were slowed down. The max value is 240 */
+const unsigned int  cui_pwmBACK     = 20;  /* The motors were slowed down. The max value is 0 */
 
 
 /*---------------- Pins ----------------------*/
 //Analog pins for bridge
-const unsigned int cui_pwmLeftMotors = 6;
-const unsigned int cui_pwmRightMotors = 9; 
-const unsigned int cui_digRightMotors = 13;
-const unsigned int cui_digLeftMotors = 12;
-
+const unsigned int cui_digRightMotors =3;
+const unsigned int cui_digLeftMotors = 5;
+const unsigned int cui_pwmLeftMotors = 9;
+const unsigned int cui_pwmRightMotors =6;
 
 //Line sensor Pins
-const unsigned int cui_LSFR = 5;
+const unsigned int cui_LSFR = 7;
 const unsigned int cui_LSFL = 4;
-const unsigned int cui_LSBR = 3;
-const unsigned int cui_LSBL = 2;
+const unsigned int cui_LSBR = 2;
+const unsigned int cui_LSBL = 8;
 
 
 //IR sensor pins
-const unsigned int cui_IRF = 0;
-const unsigned int cui_IRR = 1;
+const unsigned int cui_IRF = 1;
+const unsigned int cui_IRR = 0;
 const unsigned int cui_IRL = 2;
 
 #define DISTANCE_BOUNDARIES 82
@@ -45,7 +45,7 @@ const unsigned int cui_IRL = 2;
 
 bool b_isClockwise = false;
 
-unsigned int g_uiPaintValue        =   1000;
+unsigned int g_uiPaintValue        =   500;
 unsigned int g_uiWhiteBorder       =   HIGH;
 #define LINE_SENSOR_WAIT 10
 
@@ -55,8 +55,6 @@ void setup() {
   pinMode(cui_pwmRightMotors, OUTPUT);
   pinMode(cui_digRightMotors,OUTPUT);
   pinMode(cui_digLeftMotors, OUTPUT);
-  Serial.begin(9600);
-
 }
 
 /*=======================================MAIN FUNCTION===============================================*/
@@ -64,18 +62,11 @@ void loop()
 {
   digitalWrite(cui_digRightMotors, HIGH);
   digitalWrite(cui_digLeftMotors, HIGH);
-  
-  if(IsWithinDistance(cui_IRF)){
-    Serial.println("Attack");
-  }
-  else{
-    Serial.println("No Robot detected");
-  }
-  
-  /* -----------------------Check if robot is crossing the line---------------------------------*/
+    /* -----------------------Check if robot is crossing the line---------------------------------*/
 
   /*Front Left or Right Line Sensors*/
-  if(LineDetection(cui_LSFR) || LineDetection(cui_LSFL) )
+  
+if(LineDetection(cui_LSFR) || LineDetection(cui_LSFL) )
   {
       if(LineDetection(cui_LSFR) && LineDetection(cui_LSFL))
           {
@@ -83,11 +74,11 @@ void loop()
           }
       else if(LineDetection(cui_LSFR))
           {
-            motorDrive(cui_B_LEFT,cui_pwmRightMotors, cui_pwmLeftMotors);
+            motorDrive(cui_BACKWARD,cui_pwmRightMotors, cui_pwmLeftMotors);
           }
       else if(LineDetection(cui_LSFL))
           {
-            motorDrive(cui_B_RIGHT,cui_pwmRightMotors, cui_pwmLeftMotors);
+            motorDrive(cui_BACKWARD ,cui_pwmRightMotors, cui_pwmLeftMotors);
           }
   }
   
@@ -124,7 +115,7 @@ void loop()
   
   //-----------------------------------------Check if enemy robot is detected---------------------------//
   
-  else if   (IsWithinDistance(cui_IRF))
+  if   (IsWithinDistance(cui_IRF))
   {
     motorDrive(cui_FORWARD,cui_pwmRightMotors, cui_pwmLeftMotors);
             
@@ -176,22 +167,22 @@ bool motorDrive(
   switch(ui_direction)
   {
     case cui_FORWARD:
-      analogWrite(ui_RightMotors, cui_pwmFRONT);
+      analogWrite(ui_RightMotors, cui_pwmBACK);
       analogWrite(ui_LeftMotors, cui_pwmFRONT);
       break;
 
     case cui_BACKWARD:
-      analogWrite(ui_RightMotors, cui_pwmBACK);
+      analogWrite(ui_RightMotors, cui_pwmFRONT);
       analogWrite(ui_LeftMotors, cui_pwmBACK);
       break;
 
     case cui_SHARP_RIGHT:
-      analogWrite(ui_RightMotors, cui_pwmBACK);
+      analogWrite(ui_RightMotors, cui_pwmFRONT);
       analogWrite(ui_LeftMotors, cui_pwmFRONT);
       break;
 
     case cui_SHARP_LEFT:
-      analogWrite(ui_RightMotors, cui_pwmFRONT);
+      analogWrite(ui_RightMotors, cui_pwmBACK);
       analogWrite(ui_LeftMotors, cui_pwmBACK);
       break;
 
@@ -201,7 +192,7 @@ bool motorDrive(
       break;
 
     case cui_F_LEFT:
-      analogWrite(ui_RightMotors, cui_pwmFRONT);
+      analogWrite(ui_RightMotors, cui_pwmBACK);
       analogWrite(ui_LeftMotors, cui_pwmSTOP);
       break;
 
@@ -211,7 +202,7 @@ bool motorDrive(
       break;
 
     case cui_B_LEFT:
-      analogWrite(ui_RightMotors, cui_pwmBACK);
+      analogWrite(ui_RightMotors, cui_pwmFRONT);
       analogWrite(ui_LeftMotors, cui_pwmSTOP);
       break;
 
@@ -220,7 +211,6 @@ bool motorDrive(
   }
   return true;
 }
-
 /*========================================IRSENSOR==========================================================*/
 /*__________________________________________________________________________________________________________*/
 /* The minimum distance the ir's have to detect will be at 0.5 Volts (ie: about 2cm. Thus, an analog value
@@ -314,39 +304,39 @@ Return value: true if white border is detected, false otherwise
 
 Comments:     The global variable g_uiPaintValue can be modified to change the sensitivity.
 *************************************************************************************************************/
+
 bool LineDetection (unsigned int uiLineSensorIO)
 {
-  //Initiate
+  /*Initiate */
   unsigned int uiSensorValue         =   LOW;
-
-  //Send pulse to the sensor
+  
+  /*Send pulse to the sensor*/
   pinMode(uiLineSensorIO,OUTPUT);
   digitalWrite(uiLineSensorIO,HIGH);
 
-  //Wait and read value from sensor
+  /*Wait and read value from sensor*/
   delayMicroseconds(LINE_SENSOR_WAIT);
   pinMode(uiLineSensorIO,INPUT);
 
-  //Start "timer"
+  /*Start "timer"*/
   long liTimeStart = micros();
 
-  //Detect the amount of time it takes for the capacitor to charge
+  /*Detect the amount of time it takes for the capacitor to charge
   //If the sensor is exposed to a lot of light, it will discharge at a high rate
-  //and output HIGH causing the time difference to be max value.
+  //and output HIGH causing the time difference to be max value.*/
   while (digitalRead(uiLineSensorIO) == g_uiWhiteBorder && (micros() - liTimeStart < 3000) );
 
-  //Detect amount of time since start
+  /*Detect amount of time since start */ 
   unsigned int uiTimeDiff = micros() - liTimeStart;
   uiSensorValue = uiTimeDiff;
 
-  // If the sensor is exposed to a lot of light, return true, otherwise false
+  /* If the sensor is exposed to a lot of light, return true, otherwise false */
   if(uiTimeDiff > g_uiPaintValue)
   {
-      return true;
+      return false;
   }
   else if(uiTimeDiff <= g_uiPaintValue)
   {
-    return false;
+    return true;
   }
 }
-
